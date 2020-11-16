@@ -1,73 +1,113 @@
 //requiring path and fs modules
-const { promisify } = require('util');
-const glob = promisify(require('glob'));
-const path = require('path')
-const fs = require('fs-extra');
-const { DOMParser } = require('xmldom')
+const { promisify } = require("util");
+const glob = promisify(require("glob"));
+const path = require("path");
+const fs = require("fs-extra");
+const { DOMParser } = require("xmldom");
+const cliProgress = require("cli-progress");
+
+async function getConfigurations() {
+  const configurations = await fs.readJSON(
+    path.join(".", "/", "configuration.json")
+  );
+  return configurations;
+}
+
+
+let progressBar =  startProgressBar();
 
 // Nice to have - Add a blacklist of components we don't want.
 
+const CSS_FILES_PATTERN = "/**/*.css";
+const JS_FILES_PATTERN = "/**/*.js";
+const EJB_SERVER = "EJBServer";
+const WEB_CLIENT = "webclient";
 
-// TODO - Create a configuration file for the two values below
-const ejbServerComponents = `/Users/lucianodantas/Dev/SPMEntmods_7011/SPM-EntMods/EJBServer/components`;
-const webClientComponents = `/Users/lucianodantas/Dev/SPMEntmods_7011/SPM-EntMods/webclient/components`;
-// END OF TODO
-
-
-const CSS_FILES_PATTERN = '/**/*.css';
-const JS_FILES_PATTERN = '/**/*.js';
-const EJB_SERVER = 'EJBServer';
-const WEB_CLIENT = 'webclient';
-
-const findAndCopyFiles = async (path, baseDir) => {
-    const files = await glob(path);
-    console.log('files found', JSON.stringify(files));
-    await copyFileToResultsDir(files, baseDir)
-}
-
-const copyFileToResultsDir = async function (files, baseDir) {
-    // TODO - Read in Parallel - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
-    for (file of files) {
-        const resultsFilePath = path.join(__dirname, 'results', file.substring(file.indexOf(baseDir)))
-        await fs.copy(file, resultsFilePath);
-    };
+const findAndCopyFiles = async (path, baseDir) => { 
+  const files = await glob(path,{silent :true});
+  console.log("files found", JSON.stringify(files));
+  await copyFileToResultsDir(files, baseDir);
 };
 
-const copyJavaRenderers = async () => {
-    const files = await glob(webClientComponents + '/**/DomainsConfig.xml');
+const progressBarCli = startProgressBar();
 
-    //TODO - Read in parallel - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
-    for (const filePath of files) {
-        const data = await fs.readFile(filePath, 'UTF-8');
-        const doc = new DOMParser().parseFromString(data);
-        const elements = doc.getElementsByTagName('dc:plug-in');
+function startProgressBar() {
+    return new cliProgress.SingleBar(
+      {
+        format:
+          " |- Searching for artefacts in the components files: {percentage}%" +
+          " - " +
+          "|| {bar}||",
+        fps: 5,
+        barsize: 30,
+      },
+      cliProgress.Presets.shades_classic
+    );
+  }
 
-        for (let i = 0; i < elements.length; i++) {
-            const nameAttr = elements[i].getAttribute('name');
+const copyFileToResultsDir = async function (files, baseDir) {
+    
+  // TODO - Read in Parallel - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
+  progressBarCli.setTotal( progressBarCli.getTotal() +  files.length);
+  await Promise.all(
+    files.map(async (file) => {
+      const resultsFilePath = path.join(
+        __dirname,
+        "results",
+        file.substring(file.indexOf(baseDir))
+      );
+      await fs.copy(file, resultsFilePath);
+      progressBarCli.increment();
+    })
+  );
+};
 
-            if (nameAttr.indexOf('renderer') > 0) {
-                const className = elements[i].getAttribute('class');
-                if (className) {
-                    const pathToCopy = className.split('.').join('/');
-                    await findAndCopyFiles(webClientComponents + '/**/javasource/' + pathToCopy + '.java', WEB_CLIENT);
-                }
-            }
+const copyJavaRenderers = async ({ webClientComponents }) => {
+  const files = await glob(webClientComponents + "/**/DomainsConfig.xml",{ silent :true});
+
+  //TODO - Read in parallel - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
+  return Promise.all(
+    files.map(async (filePath) => {
+      const data = await fs.readFile(filePath, "UTF-8");
+      const doc = new DOMParser().parseFromString(data);
+      const elements = doc.getElementsByTagName("dc:plug-in");
+
+      for (let i = 0; i < elements.length; i++) {
+        const nameAttr = elements[i].getAttribute("name");
+
+        if (nameAttr.indexOf("renderer") > 0) {
+          const className = elements[i].getAttribute("class");
+          if (className) {
+            const pathToCopy = className.split(".").join("/");
+            await findAndCopyFiles(
+              webClientComponents + "/**/javasource/" + pathToCopy + ".java",
+              WEB_CLIENT
+            );
+          }
         }
-    };
-}
-
+      }
+    })
+  );
+};
 
 const run = async () => {
-    // EjbServer
-    await findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER);
-    await findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER);
+  const {
+    ejbServerComponents,
+    webClientComponents,
+  } = await getConfigurations();
+  // EjbServer
 
-    // Webclient
-    await findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT);
-    await findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT);
+  progressBarCli.start(1, 0);
+ 
 
-
-    await copyJavaRenderers();
-}
+  await Promise.all(
+     [findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
+     findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER),
+     findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT),
+     findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT),
+     copyJavaRenderers({ webClientComponents })
+     ]);
+     progressBarCli.increment();
+};
 
 run();
