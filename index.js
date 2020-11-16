@@ -24,8 +24,7 @@ const EJB_SERVER = "EJBServer";
 const WEB_CLIENT = "webclient";
 
 const findAndCopyFiles = async (path, baseDir) => { 
-  const files = await glob(path,{silent :true});
-  console.log("files found", JSON.stringify(files));
+  const files = await glob(path);
   await copyFileToResultsDir(files, baseDir);
 };
 
@@ -63,8 +62,9 @@ const copyFileToResultsDir = async function (files, baseDir) {
 };
 
 const copyJavaRenderers = async ({ webClientComponents }) => {
-  const files = await glob(webClientComponents + "/**/DomainsConfig.xml",{ silent :true});
 
+  const files = await glob(webClientComponents + "/**/DomainsConfig.xml",{ silent :true});
+  progressBarCli.setTotal( progressBarCli.getTotal() +  files.length);
   //TODO - Read in parallel - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
   return Promise.all(
     files.map(async (filePath) => {
@@ -86,6 +86,7 @@ const copyJavaRenderers = async ({ webClientComponents }) => {
           }
         }
       }
+      progressBarCli.increment();
     })
   );
 };
@@ -98,7 +99,11 @@ const run = async () => {
   // EjbServer
 
   progressBarCli.start(1, 0);
- 
+  var start = new Date();
+  
+
+  
+
 
   await Promise.all(
      [findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
@@ -108,6 +113,11 @@ const run = async () => {
      copyJavaRenderers({ webClientComponents })
      ]);
      progressBarCli.increment();
+
+     var end = new Date();
+     console.log(`Start ${start}- End: ${end}`);
+
+     progressBarCli.stop();
 };
 
 run();
