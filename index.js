@@ -58,25 +58,20 @@ const copyFileToResultsDir = async function (files, baseDir) {
   );
 };
 
-
-function getDomainPattern(){
+function getDomainPattern() {
   let domainSearchPattern;
-  const { skipComponents} = configurations;
-  if(skipComponents && skipComponents.length > 0){
+  const { skipComponents } = configurations;
+  if (skipComponents && skipComponents.length > 0) {
     const skipComponents = configurations.skipComponents.join("|");
-    domainSearchPattern= `/!(*${skipComponents})/DomainsConfig.xml`
-  }else{
-    domainSearchPattern =  `/**/DomainsConfig.xml`;
+    domainSearchPattern = `/!(*${skipComponents})/DomainsConfig.xml`;
+  } else {
+    domainSearchPattern = `/**/DomainsConfig.xml`;
   }
   return domainSearchPattern;
 }
 
 const copyJavaRenderers = async ({ webClientComponents }) => {
-
- 
-  const files = await glob(
-    webClientComponents + getDomainPattern()
-  );
+  const files = await glob(webClientComponents + getDomainPattern());
   return Promise.all(
     files.map(async (filePath) => {
       const data = await fs.readFile(filePath, "UTF-8");
@@ -137,28 +132,34 @@ function createResultsDirectory() {
 }
 
 const run = async () => {
-  configurations = await getConfigurations();
-  const { ejbServerComponents, webClientComponents } = configurations;
-  // EjbServer
-  var start = new Date();
+  try {
+    configurations = await getConfigurations();
+    const { ejbServerComponents, webClientComponents } = configurations;
+    // EjbServer
+    var start = new Date();
 
-  createResultsDirectory();
+    createResultsDirectory();
 
-  // task that can be executed em parallel
-  const steps = [
-    findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
-    findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER),
-    findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT),
-    findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT),
-    copyJavaRenderers({ webClientComponents }),
-  ].map((e) => e.catch((e)=> console.log(e).then(() => progressBarCli.increment())));
+    // task that can be executed em parallel
+    const steps = [
+      findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
+      findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER),
+      findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT),
+      findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT),
+      copyJavaRenderers({ webClientComponents }),
+    ].map((e) =>
+      e.catch((e) => console.log(e)).then(() => progressBarCli.increment())
+    );
 
-  progressBarCli.start(steps.length + 1, 0);
-  await Promise.all(steps);
+    progressBarCli.start(steps.length + 1, 0);
+    await Promise.all(steps);
 
-  await createZipFile();
+    await createZipFile();
 
-  progressBarCli.stop();
+    progressBarCli.stop();
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 run();
