@@ -151,7 +151,7 @@ const run = async () => {
     findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT),
     findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT),
     copyJavaRenderers({ webClientComponents }),
-  ].map((e) => e.then(() => progressBarCli.increment()));
+  ].map((e) => e.catch((e)=> console.log(e).then(() => progressBarCli.increment())));
 
   progressBarCli.start(steps.length + 1, 0);
   await Promise.all(steps);
