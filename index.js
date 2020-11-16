@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs-extra");
 const { DOMParser } = require("xmldom");
 const cliProgress = require("cli-progress");
+var archiver = require("archiver");
 
 let configurations;
 
@@ -13,7 +14,7 @@ async function getConfigurations() {
     path.join(".", "configuration.json")
   );
   return configurations;
-};
+}
 
 // Nice to have - Add a blacklist of components we don't want.
 
@@ -49,6 +50,7 @@ const copyFileToResultsDir = async function (files, baseDir) {
       const resultsFilePath = path.join(
         __dirname,
         "results",
+        "temp",
         file.substring(file.indexOf(baseDir))
       );
       await fs.copy(file, resultsFilePath);
@@ -59,8 +61,7 @@ const copyFileToResultsDir = async function (files, baseDir) {
 const copyJavaRenderers = async ({ webClientComponents }) => {
   const skipComponents = configurations.skipComponents.join("|");
   const files = await glob(
-    webClientComponents +
-      `/!(*${skipComponents})/DomainsConfig.xml`
+    webClientComponents + `/!(*${skipComponents})/DomainsConfig.xml`
   );
   return Promise.all(
     files.map(async (filePath) => {
@@ -86,14 +87,55 @@ const copyJavaRenderers = async ({ webClientComponents }) => {
   );
 };
 
+function createZipFile() {
+  return new Promise((resolve) => {
+    const dirToCopy = path.join(__dirname, "results","temp");
+    const zipDir = path.join(__dirname, "results");
+    const zipFullPath = path.join(zipDir, "results.zip");
+
+    const output = fs.createWriteStream(zipFullPath);
+    const archive = archiver("zip", {
+      zlib: { level: 9 }, // Sets the compression level.
+    });
+
+    // listen for all archive data to be written
+    // 'close' event is fired only when a file descriptor is involved
+    output.on("close", function () {
+      progressBarCli.increment();
+      console.log(archive.pointer() + " total bytes");
+      console.log(`zip file archive  ${zipFullPath} `);
+      resolve();
+    });
+
+    archive.pipe(output);
+
+    archive.directory(dirToCopy, false);
+    archive.finalize();
+  });
+}
+
+function createResultsDirectory() {
+  const resultsFolder = path.join(__dirname, "results","temp");
+  if (!fs.pathExistsSync(resultsFolder)) {
+    fs.pathExistsSync(resultsFolder);
+  }
+}
+
+
+function createFiles(){
+    
+}
+
 const run = async () => {
   configurations = await getConfigurations();
   const { ejbServerComponents, webClientComponents } = configurations;
   // EjbServer
   var start = new Date();
 
-  console.log("...Copping files: " + start);
+  createResultsDirectory();
 
+
+  // task that can be executed em parallel
   const steps = [
     findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
     findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER),
@@ -102,14 +144,13 @@ const run = async () => {
     copyJavaRenderers({ webClientComponents }),
   ].map((e) => e.then(() => progressBarCli.increment()));
 
-  progressBarCli.start(steps.length, 0);
-
+  progressBarCli.start(steps.length + 1, 0);
   await Promise.all(steps);
 
-  var end = new Date();
+  await createZipFile();
+
 
   progressBarCli.stop();
-  console.log(`Finished`, start, `End:`, end);
 };
 
 run();

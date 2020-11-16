@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^5.0.2",
     "cli-progress": "^3.8.2",
     "fs-extra": "^9.0.1",
     "glob": "^7.1.6",
