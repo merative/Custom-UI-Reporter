@@ -11,10 +11,13 @@ let configurations;
 
 async function getConfigurations() {
   const configurations = await fs.readJSON(
-    path.join(".", "configuration.json")
+    path.join(__dirname, "configuration.json")
   );
   return configurations;
 }
+
+
+
 
 // Nice to have - Add a blacklist of components we don't want.
 
@@ -115,16 +118,15 @@ function createZipFile() {
 }
 
 function createResultsDirectory() {
+    console.log("dirfile",__dirname);
   const resultsFolder = path.join(__dirname, "results","temp");
   if (!fs.pathExistsSync(resultsFolder)) {
-    fs.pathExistsSync(resultsFolder);
+    fs.mkdirSync(resultsFolder,  { recursive: true });
   }
+  
 }
 
 
-function createFiles(){
-    
-}
 
 const run = async () => {
   configurations = await getConfigurations();
