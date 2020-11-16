@@ -1,4 +1,5 @@
 {
     "ejbServerComponents" : "/Users/caiobessa/sources/streams/HCR/8000/HCR/EJBServer/components",
-    "webClientComponents" : "/Users/caiobessa/sources/streams/HCR/8000/HCR/webclient/components"
+    "webClientComponents" : "/Users/caiobessa/sources/streams/HCR/8000/HCR/webclient/components",
+    "skipComponents" : ["core","AdvancedEvidenceSharing"]
 }

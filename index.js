@@ -6,15 +6,14 @@ const fs = require("fs-extra");
 const { DOMParser } = require("xmldom");
 const cliProgress = require("cli-progress");
 
+let configurations;
+
 async function getConfigurations() {
   const configurations = await fs.readJSON(
-    path.join(".", "/", "configuration.json")
+    path.join(".", "configuration.json")
   );
   return configurations;
-}
-
-
-let progressBar =  startProgressBar();
+};
 
 // Nice to have - Add a blacklist of components we don't want.
 
@@ -23,31 +22,28 @@ const JS_FILES_PATTERN = "/**/*.js";
 const EJB_SERVER = "EJBServer";
 const WEB_CLIENT = "webclient";
 
-const findAndCopyFiles = async (path, baseDir) => { 
+const findAndCopyFiles = async (path, baseDir) => {
   const files = await glob(path);
   await copyFileToResultsDir(files, baseDir);
 };
 
-const progressBarCli = startProgressBar();
+const progressBarCli = createProgressBar();
 
-function startProgressBar() {
-    return new cliProgress.SingleBar(
-      {
-        format:
-          " |- Searching for artefacts in the components files: {percentage}%" +
-          " - " +
-          "|| {bar}||",
-        fps: 5,
-        barsize: 30,
-      },
-      cliProgress.Presets.shades_classic
-    );
-  }
+function createProgressBar() {
+  return new cliProgress.SingleBar(
+    {
+      format:
+        " |- Searching for artefacts in the components files: {percentage}%" +
+        " - " +
+        "|| {bar} ||",
+      fps: 5,
+      barsize: 30,
+    },
+    cliProgress.Presets.shades_classic
+  );
+}
 
 const copyFileToResultsDir = async function (files, baseDir) {
-    
-  // TODO - Read in Parallel - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
-  progressBarCli.setTotal( progressBarCli.getTotal() +  files.length);
   await Promise.all(
     files.map(async (file) => {
       const resultsFilePath = path.join(
@@ -56,16 +52,16 @@ const copyFileToResultsDir = async function (files, baseDir) {
         file.substring(file.indexOf(baseDir))
       );
       await fs.copy(file, resultsFilePath);
-      progressBarCli.increment();
     })
   );
 };
 
 const copyJavaRenderers = async ({ webClientComponents }) => {
-
-  const files = await glob(webClientComponents + "/**/DomainsConfig.xml",{ silent :true});
-  progressBarCli.setTotal( progressBarCli.getTotal() +  files.length);
-  //TODO - Read in parallel - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
+  const skipComponents = configurations.skipComponents.join("|");
+  const files = await glob(
+    webClientComponents +
+      `/!(*${skipComponents})/DomainsConfig.xml`
+  );
   return Promise.all(
     files.map(async (filePath) => {
       const data = await fs.readFile(filePath, "UTF-8");
@@ -86,38 +82,34 @@ const copyJavaRenderers = async ({ webClientComponents }) => {
           }
         }
       }
-      progressBarCli.increment();
     })
   );
 };
 
 const run = async () => {
-  const {
-    ejbServerComponents,
-    webClientComponents,
-  } = await getConfigurations();
+  configurations = await getConfigurations();
+  const { ejbServerComponents, webClientComponents } = configurations;
   // EjbServer
-
-  progressBarCli.start(1, 0);
   var start = new Date();
-  
 
-  
+  console.log("...Copping files: " + start);
 
+  const steps = [
+    findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
+    findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER),
+    findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT),
+    findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT),
+    copyJavaRenderers({ webClientComponents }),
+  ].map((e) => e.then(() => progressBarCli.increment()));
 
-  await Promise.all(
-     [findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
-     findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER),
-     findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT),
-     findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT),
-     copyJavaRenderers({ webClientComponents })
-     ]);
-     progressBarCli.increment();
+  progressBarCli.start(steps.length, 0);
 
-     var end = new Date();
-     console.log(`Start ${start}- End: ${end}`);
+  await Promise.all(steps);
 
-     progressBarCli.stop();
+  var end = new Date();
+
+  progressBarCli.stop();
+  console.log(`Finished`, start, `End:`, end);
 };
 
 run();
