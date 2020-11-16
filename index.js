@@ -16,9 +16,6 @@ async function getConfigurations() {
   return configurations;
 }
 
-
-
-
 // Nice to have - Add a blacklist of components we don't want.
 
 const CSS_FILES_PATTERN = "/**/*.css";
@@ -61,10 +58,24 @@ const copyFileToResultsDir = async function (files, baseDir) {
   );
 };
 
+
+function getDomainPattern(){
+  let domainSearchPattern;
+  const { skipComponents} = configurations;
+  if(skipComponents && skipComponents.length > 0){
+    const skipComponents = configurations.skipComponents.join("|");
+    domainSearchPattern= `/!(*${skipComponents})/DomainsConfig.xml`
+  }else{
+    domainSearchPattern =  `/**/DomainsConfig.xml`;
+  }
+  return domainSearchPattern;
+}
+
 const copyJavaRenderers = async ({ webClientComponents }) => {
-  const skipComponents = configurations.skipComponents.join("|");
+
+ 
   const files = await glob(
-    webClientComponents + `/!(*${skipComponents})/DomainsConfig.xml`
+    webClientComponents + getDomainPattern()
   );
   return Promise.all(
     files.map(async (filePath) => {
@@ -92,7 +103,7 @@ const copyJavaRenderers = async ({ webClientComponents }) => {
 
 function createZipFile() {
   return new Promise((resolve) => {
-    const dirToCopy = path.join(__dirname, "results","temp");
+    const dirToCopy = path.join(__dirname, "results", "temp");
     const zipDir = path.join(__dirname, "results");
     const zipFullPath = path.join(zipDir, "results.zip");
 
@@ -118,15 +129,12 @@ function createZipFile() {
 }
 
 function createResultsDirectory() {
-    console.log("dirfile",__dirname);
-  const resultsFolder = path.join(__dirname, "results","temp");
+  console.log("dirfile", __dirname);
+  const resultsFolder = path.join(__dirname, "results", "temp");
   if (!fs.pathExistsSync(resultsFolder)) {
-    fs.mkdirSync(resultsFolder,  { recursive: true });
+    fs.mkdirSync(resultsFolder, { recursive: true });
   }
-  
 }
-
-
 
 const run = async () => {
   configurations = await getConfigurations();
@@ -135,7 +143,6 @@ const run = async () => {
   var start = new Date();
 
   createResultsDirectory();
-
 
   // task that can be executed em parallel
   const steps = [
@@ -150,7 +157,6 @@ const run = async () => {
   await Promise.all(steps);
 
   await createZipFile();
-
 
   progressBarCli.stop();
 };
