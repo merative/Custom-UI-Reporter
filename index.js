@@ -72,6 +72,7 @@ function getDomainPattern() {
 
 const copyJavaRenderers = async ({ webClientComponents }) => {
     const files = await glob(webClientComponents + getDomainPattern());
+    progressBarCli.setTotal(progressBarCli.getTotal() + files.length);
     await copyFileToResultsDir(files, WEB_CLIENT);
     return Promise.all(
         files.map(async (filePath) => {
@@ -93,6 +94,7 @@ const copyJavaRenderers = async ({ webClientComponents }) => {
                     }
                 }
             }
+            progressBarCli.increment();
         })
     );
 };
