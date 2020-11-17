@@ -13,6 +13,7 @@ const JS_FILES_PATTERN = "/**/*.js";
 const EJB_SERVER = "EJBServer";
 const WEB_CLIENT = "webclient";
 const TEMP_DIR = path.join(__dirname, "results", "temp")
+let filesCounter = 0;
 
 
 let configurations;
@@ -34,7 +35,7 @@ function createProgressBar() {
     return new cliProgress.SingleBar(
         {
             format:
-                " |- Searching for artefacts in the components files: {percentage}%" +
+                " |- Progress: {percentage}%" +
                 " - " +
                 "|| {bar} ||",
             fps: 5,
@@ -52,6 +53,7 @@ const copyFileToResultsDir = async function (files, baseDir) {
             );
             const fileExists = await fs.pathExists(resultsFilePath)
             if (!fileExists) {
+                filesCounter++;
                 await fs.copy(file, resultsFilePath);
             }
         })
@@ -113,8 +115,9 @@ function createZipFile() {
         // 'close' event is fired only when a file descriptor is involved
         output.on("close", function () {
             progressBarCli.increment();
-            console.log(archive.pointer() + " total bytes");
-            console.log(`zip file archive  ${zipFullPath} `);
+            progressBarCli.stop();
+            console.log(`\n ${filesCounter} files found. Generating a zip file. \n`)
+            console.log(` Zip file created: ${zipFullPath} `);
             resolve();
         });
 
@@ -138,6 +141,7 @@ const run = async () => {
         const { ejbServerComponents, webClientComponents } = configurations;
         // EjbServer
         var start = new Date();
+        console.log("Searching for custom UI files - JavaScript, CSS and Domain Java Renderers`) \n");
 
         createResultsDirectory();
 
@@ -160,6 +164,7 @@ const run = async () => {
 
         progressBarCli.stop();
     } catch (error) {
+        progressBarCli.stop();
         console.log(error);
     }
 };
