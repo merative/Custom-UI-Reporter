@@ -6,6 +6,7 @@ const fs = require("fs-extra");
 const { DOMParser } = require("xmldom");
 const cliProgress = require("cli-progress");
 var archiver = require("archiver");
+const { isConfigurationJsonValid } = require("./validations");
 
 
 const CSS_FILES_PATTERN = "/**/*.css";
@@ -134,6 +135,11 @@ function createResultsDirectory() {
 
 const run = async () => {
     try {
+
+        const isValid = await isConfigurationJsonValid();
+
+       if(!isValid) return;
+
         configurations = await getConfigurations();
         const { ejbServerComponents, webClientComponents } = configurations;
         // EjbServer
