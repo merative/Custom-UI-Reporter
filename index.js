@@ -72,6 +72,7 @@ function getDomainPattern() {
 
 const copyJavaRenderers = async ({ webClientComponents }) => {
     const files = await glob(webClientComponents + getDomainPattern());
+    await copyFileToResultsDir(files, WEB_CLIENT);
     return Promise.all(
         files.map(async (filePath) => {
             const data = await fs.readFile(filePath, "UTF-8");
