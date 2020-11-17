@@ -1,12 +1,12 @@
 const fs = require("fs-extra");
 const path = require("path");
 
-async function isConfigurationJsonValid(){
+async function isConfigurationJsonValid() {
 
-    const configurationsFileLocation =  path.join(__dirname, "configuration.json");
+    const configurationsFileLocation = path.join(__dirname, "configuration.json");
 
-    if(!fs.existsSync(configurationsFileLocation)){
-        console.log(`The configurations.json file is missing`);
+    if (!fs.existsSync(configurationsFileLocation)) {
+        console.log(`[configurations.json] The file configurations.json is missing`);
         return false;
     }
 
@@ -15,38 +15,38 @@ async function isConfigurationJsonValid(){
         );
         return configurations;
     }
-    
+
     const errorsMessages = [];
-    const {ejbServerComponents, webClientComponents, skipComponents } = await getConfigurations();
+    const { ejbServerComponents, webClientComponents, skipComponents } = await getConfigurations();
 
 
 
-    if(!webClientComponents){
-        errorsMessages.push(  `The field "webClientComponents" is missing`);
+    if (!webClientComponents) {
+        errorsMessages.push(`[configurations.json] The field "webClientComponents" is missing in the file configurations.json`);
     }
 
 
-    if(!ejbServerComponents){
-        errorsMessages.push(  `The field "ejbServerComponents" is missing`);
+    if (!ejbServerComponents) {
+        errorsMessages.push(`[configurations.json] The field "ejbServerComponents" is missing in the file configurations.json`);
     }
 
 
-    if(skipComponents && !Array.isArray(skipComponents)){
-        errorsMessages.push(`The field "skipComponents" must be an array of string`);
+    if (skipComponents && !Array.isArray(skipComponents)) {
+        errorsMessages.push(`[configurations.json] The field "skipComponents" in the file configurations.json must be an array of strings`);
     }
 
     // test paths
-    if(webClientComponents  && !fs.existsSync(webClientComponents)){
-        errorsMessages.push(`The path in "webClientComponents" does not exist`);
+    if (webClientComponents && !fs.existsSync(webClientComponents)) {
+        errorsMessages.push(`[configurations.json] The path in "webClientComponents" does not exist. Update the file configurations.json`);
     }
 
-    if(ejbServerComponents  && !fs.existsSync(ejbServerComponents)){
-        errorsMessages.push(`The path in "ejbServerComponents" does not exist`);
+    if (ejbServerComponents && !fs.existsSync(ejbServerComponents)) {
+        errorsMessages.push(`[configurations.json] The path in "ejbServerComponents" does not exist. Update the file configurations.json`);
     }
 
-    if(errorsMessages.length){
+    if (errorsMessages.length) {
         console.error("Errors found:")
-        errorsMessages.forEach( message => {
+        errorsMessages.forEach(message => {
             console.error(`* ${message}`);
         })
         return false;
