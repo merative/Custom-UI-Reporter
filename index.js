@@ -8,9 +8,6 @@ const cliProgress = require("cli-progress");
 var archiver = require("archiver");
 const { isConfigurationJsonValid } = require("./validations");
 
-
-const CSS_FILES_PATTERN = "/**/*.css";
-const JS_FILES_PATTERN = "/**/*.js";
 const EJB_SERVER = "EJBServer";
 const WEB_CLIENT = "webclient";
 const TEMP_DIR = path.join(__dirname, "results", "temp")
@@ -71,6 +68,30 @@ function getDomainPattern() {
         domainSearchPattern = `/**/DomainsConfig.xml`;
     }
     return domainSearchPattern;
+}
+
+function getCSSPattern() {
+    let cssPattern;
+    const { skipComponents } = configurations;
+    if (skipComponents && skipComponents.length > 0) {
+        const skipComponents = configurations.skipComponents.join("|");
+        cssPattern = `/!(*${skipComponents})/*.css`;
+    } else {
+        cssPattern = "/**/*.css";
+    }
+    return cssPattern;
+}
+
+function getJSPattern() {
+    let jsPattern;
+    const { skipComponents } = configurations;
+    if (skipComponents && skipComponents.length > 0) {
+        const skipComponents = configurations.skipComponents.join("|");
+        jsPattern = `/!(*${skipComponents})/*.js`;
+    } else {
+        jsPattern = "/**/*.js";
+    }
+    return jsPattern;
 }
 
 const copyJavaRenderers = async ({ webClientComponents }) => {
@@ -153,10 +174,10 @@ const run = async () => {
 
         // task that can be executed em parallel
         const steps = [
-            findAndCopyFiles(ejbServerComponents + CSS_FILES_PATTERN, EJB_SERVER),
-            findAndCopyFiles(ejbServerComponents + JS_FILES_PATTERN, EJB_SERVER),
-            findAndCopyFiles(webClientComponents + CSS_FILES_PATTERN, WEB_CLIENT),
-            findAndCopyFiles(webClientComponents + JS_FILES_PATTERN, WEB_CLIENT),
+            findAndCopyFiles(ejbServerComponents + getCSSPattern(), EJB_SERVER),
+            findAndCopyFiles(ejbServerComponents + getJSPattern(), EJB_SERVER),
+            findAndCopyFiles(webClientComponents + getCSSPattern(), WEB_CLIENT),
+            findAndCopyFiles(webClientComponents + getJSPattern(), WEB_CLIENT),
             copyJavaRenderers({ webClientComponents }),
         ].map((e) =>
             e.catch((e) => console.log(e)).then(() => progressBarCli.increment())
