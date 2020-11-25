@@ -2,13 +2,13 @@
 
 ## Overview
 
-Run this simple ReactJS app on your IBM Social Program Management (SPM) installation to identify and extract any custom UI configuration in your project. This information is useful to SPM, to help us to plan and support the evolution of the SPM UI. It is useful for you, to help you to efficiently update and upgrade the SPM UI for your project.
+Run this simple ReactJS app on your IBM Social Program Management (SPM) installation to identify and extract any custom UI configuration in your project. This information is useful to SPM, to help us to plan and support the evolution of the SPM UI. It is useful for you, to help you to efficiently update or upgrade the SPM UI for your project.
 
 The app ignores the standard locations that contain the default SPM UI configuration files, and searches for custom CSS, JavaScript, and domain Java(TM) renderer files in the project.
 
 > Note: For privacy and security, no other information is extracted and no information is requested from any database in the system.
 
-The files are copied into an archive file, from which you can copy them on to a local development environment to recreate the customisation.
+The custom files are copied into an archive file, so you can copy them to a local development environment to recreate the customisation.
 
 
 ## Running the app
