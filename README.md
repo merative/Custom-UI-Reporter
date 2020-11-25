@@ -8,7 +8,7 @@ The app ignores the standard locations that contain the default SPM UI configura
 
 > Note: For privacy and security, no other information is extracted and no information is requested from any database in the system.
 
-The files are copied into an archive file, which you can extract on a test system to recreate the customisation.
+The files are copied into an archive file, from which you can copy them on to a local development environment to recreate the customisation.
 
 
 ## Running the app
