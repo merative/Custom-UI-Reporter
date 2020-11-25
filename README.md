@@ -13,9 +13,11 @@ The custom files are copied into an archive file, so you can copy them to a loca
 
 ## Running the app
 
-You’ll need [node.js 10 or later](https://nodejs.org), and to download and extract the app.
+You’ll need [node.js 10 or later](https://nodejs.org) to run the app.
 
-The `configuration.json` configuration lists all of the locations to exclude from your search. By default, the standard locations for SPM UI configuration files. You can update this file to exclude other locations if needed.
+Download and extract the app, which consists of the `configuration.json` and `index.js` files.
+
+The `configuration.json` configuration file lists all of the locations to exclude from your search. By default, the standard locations for SPM UI configuration files. You can update this file to exclude other locations if needed.
 
 Run the app with the following command from the extracted directory:
 
