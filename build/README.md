@@ -17,7 +17,7 @@ You’ll need [node.js 10 or later](https://nodejs.org) to run the app.
 
 Download and extract the app, which consists of the `configuration.json` and `index.js` files.
 
-The `configuration.json` configuration file defines the paths to the `EJBServer/components` and `webclient/components` folders of your SPM installation. The attribute `skipComponents` in the configuration file defines if components that should be skipped during the search. By default it is set with all OOTB components.
+The `configuration.json` configuration file defines the paths to the `EJBServer/components` and `webclient/components` folders of your SPM installation. The `skipComponents` attribute defines which components to skip during the search. By default, it is set to skip all SPM component.
 
 Run the app with the following command from the extracted directory:
 
