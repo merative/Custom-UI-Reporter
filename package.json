@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "cp ./configuration.json ./build && webpack --config webpack.config.js"
+    "build": "rm -rf build && mkdir build && cp ./configuration.json ./build && cp ./README.md ./build && webpack --config webpack.config.js"
   },
   "author": "",
   "license": "ISC",

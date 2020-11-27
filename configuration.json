@@ -106,6 +106,7 @@
         "CEFConfig",
         "CREOLEDevelopmentProduct",
         "CREOLETestProduct",
-        "ExProd"
+        "ExProd",
+        "NavigatorSecure",
     ]
 }
