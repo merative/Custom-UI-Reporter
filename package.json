@@ -1,7 +1,7 @@
 {
-  "name": "domain-renderers",
+  "name": "Custom-UI-Reporter",
   "version": "1.0.0",
-  "description": "",
+  "description": "Custom UI Reporter - Identifies custom UI files inside the SPM instance",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
