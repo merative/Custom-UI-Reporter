@@ -1,6 +1,6 @@
 {
-    "ejbServerComponents": "/opt/SPM-EntMods/EJBServer/components",
-    "webClientComponents": "/opt/SPM-EntMods/webclient/components",
+    "ejbServerComponents": "/opt/SPM/EJBServer/components",
+    "webClientComponents": "/opt/SPM/webclient/components",
     "skipComponents": [
         "AdvancedEvidenceSharing",
         "Advisor",
