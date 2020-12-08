@@ -10,6 +10,7 @@ const { isConfigurationJsonValid } = require("./validations");
 
 const EJB_SERVER = "EJBServer";
 const WEB_CLIENT = "webclient";
+let componentsToSearch;
 const TEMP_DIR = path.join(__dirname, "results", "temp")
 let filesCounter = 0;
 
@@ -19,6 +20,24 @@ async function getConfigurations() {
     const configurations = await fs.readJSON(
         path.join(__dirname, "configuration.json")
     );
+
+    const {ejbServerComponents, webClientComponents, skipComponents} = configurations;
+
+    const componentsToSearch = new Set();
+    fs.readdirSync(ejbServerComponents).forEach(file => {
+        if(!configurations.skipComponents.includes(file)){
+            componentsToSearch.add(file);
+        }        
+    });
+
+    fs.readdirSync(webClientComponents).forEach(file => {
+        if(!configurations.skipComponents.includes(file)){
+            componentsToSearch.add(file);
+        }        
+    });
+
+    configurations.componentsToSearch = [...componentsToSearch].join('|');
+
     return configurations;
 }
 
@@ -60,10 +79,9 @@ const copyFileToResultsDir = async function (files, baseDir) {
 
 function getDomainPattern() {
     let domainSearchPattern;
-    const { skipComponents } = configurations;
-    if (skipComponents && skipComponents.length > 0) {
-        const skipComponents = configurations.skipComponents.join("|");
-        domainSearchPattern = `/!(*${skipComponents})/DomainsConfig.xml`;
+    const { componentsToSearch } = configurations;
+    if (componentsToSearch && componentsToSearch.length > 0) {
+        domainSearchPattern = `/${componentsToSearch}/**/DomainsConfig.xml`;
     } else {
         domainSearchPattern = `/**/DomainsConfig.xml`;
     }
@@ -71,11 +89,11 @@ function getDomainPattern() {
 }
 
 function getCSSPattern() {
+    const {componentsToSearch} = configurations;
+
     let cssPattern;
-    const { skipComponents } = configurations;
-    if (skipComponents && skipComponents.length > 0) {
-        const skipComponents = configurations.skipComponents.join("|");
-        cssPattern = `/!(*${skipComponents})/*.css`;
+    if (componentsToSearch && componentsToSearch.length > 0) {
+        cssPattern = `/${componentsToSearch}/**/*.css`;
     } else {
         cssPattern = "/**/*.css";
     }
@@ -84,10 +102,9 @@ function getCSSPattern() {
 
 function getJSPattern() {
     let jsPattern;
-    const { skipComponents } = configurations;
-    if (skipComponents && skipComponents.length > 0) {
-        const skipComponents = configurations.skipComponents.join("|");
-        jsPattern = `/!(*${skipComponents})/*.js`;
+    const {componentsToSearch} = configurations;
+    if (componentsToSearch && componentsToSearch.length > 0) {
+        jsPattern = `/${componentsToSearch}/**/*.js`;
     } else {
         jsPattern = "/**/*.js";
     }
