@@ -21,7 +21,7 @@ async function getConfigurations() {
         path.join(__dirname, "configuration.json")
     );
 
-    const {ejbServerComponents, webClientComponents, skipComponents} = configurations;
+    const {ejbServerComponents, webClientComponents } = configurations;
 
     const componentsToSearch = new Set();
     fs.readdirSync(ejbServerComponents).forEach(file => {
@@ -81,7 +81,7 @@ function getDomainPattern() {
     let domainSearchPattern;
     const { componentsToSearch } = configurations;
     if (componentsToSearch && componentsToSearch.length > 0) {
-        domainSearchPattern = `/${componentsToSearch}/**/DomainsConfig.xml`;
+        domainSearchPattern = `/*(${componentsToSearch})/DomainsConfig.xml`;
     } else {
         domainSearchPattern = `/**/DomainsConfig.xml`;
     }
@@ -113,6 +113,7 @@ function getJSPattern() {
 
 const copyJavaRenderers = async ({ webClientComponents }) => {
     const files = await glob(webClientComponents + getDomainPattern());
+
     progressBarCli.setTotal(progressBarCli.getTotal() + files.length);
     await copyFileToResultsDir(files, WEB_CLIENT);
     return Promise.all(
