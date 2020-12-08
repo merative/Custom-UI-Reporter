@@ -93,7 +93,7 @@ function getCSSPattern() {
 
     let cssPattern;
     if (componentsToSearch && componentsToSearch.length > 0) {
-        cssPattern = `/${componentsToSearch}/**/*.css`;
+        cssPattern = `/*(${componentsToSearch})/**/*.css`;
     } else {
         cssPattern = "/**/*.css";
     }
@@ -104,7 +104,7 @@ function getJSPattern() {
     let jsPattern;
     const {componentsToSearch} = configurations;
     if (componentsToSearch && componentsToSearch.length > 0) {
-        jsPattern = `/${componentsToSearch}/**/*.js`;
+        jsPattern = `/*(${componentsToSearch})/**/*.js`;
     } else {
         jsPattern = "/**/*.js";
     }
