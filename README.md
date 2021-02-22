@@ -17,6 +17,8 @@ You’ll need [node.js 10 or later](https://nodejs.org) to run the app.
 
 Download and extract the app, which consists of the `configuration.json` and `index.js` files.
 
+Run `npm install` to install the dependencies.
+
 The `configuration.json` configuration file defines the paths to the `EJBServer/components` and `webclient/components` folders of your SPM installation. The `skipComponents` attribute defines which components to skip during the search. By default, it is set to skip all OOTB SPM components.
 
 Run the app with the following command from the extracted directory:
@@ -30,4 +32,3 @@ The custom files are copied into the `Results` directory. The file struture of t
 - For CSS and JavaScript files, we copy any files with the extensions `.css` and `.js`. These are mainly in the `webclient` component, but we also search the `EJBServer` component for IEG customisations, which are in the `EJBServer/component/***/data` directory. For example, ` EJBServer/component/***/data/my-custom.css`.
 
 - For domain renderers, we search for files called `DomainsConfig.xml`, find instances of `view-renderer`, `edit-renderer`, or `select-renderer`, and copy the associated Java file that is defined in the `class` attribute.
-
