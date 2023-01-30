@@ -2,7 +2,7 @@
 
 ## Overview
 
-Run this simple app on your IBM Social Program Management (SPM) installation to identify and extract any custom UI configuration in your project. This information is useful to SPM, to help us to plan and support the evolution of the SPM UI. It is useful for you, to help you to efficiently update or upgrade the SPM UI for your project.
+Run this simple app on your Merative:tm: Social Program Management (SPM) installation to identify and extract any custom UI configuration in your project. This information is useful to SPM, to help us to plan and support the evolution of the SPM UI. It is useful for you, to help you to efficiently update or upgrade the SPM UI for your project.
 
 The app ignores the standard locations that contain the default SPM UI configuration files, and searches for custom CSS, JavaScript, and domain Java(TM) renderer files in the project.
 
